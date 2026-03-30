@@ -7,7 +7,7 @@ import { getFirestore, doc, setDoc, getDoc, onSnapshot }
 
 const firebaseConfig = {
   apiKey: "AIzaSyC7jIwGVdqII0v53gFw83mP9Pa4PBSLg2I",
-  authDomain: "sanush-website-datebase.firebaseapp.com",
+  authDomain: "sanaria-website.vercel.app",
   projectId: "sanush-website-datebase",
   storageBucket: "sanush-website-datebase.firebasestorage.app",
   messagingSenderId: "336092110705",
