@@ -380,3 +380,166 @@ function toast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2300);
 }
+
+////end line
+
+  // ===== Auth Modal Logic: tabs, signup/login, OTP verification =====
+  function showAuthPanel(name){
+    var panels = document.querySelectorAll('#authModal .auth-panel');
+    panels.forEach(function(p){ p.classList.remove('active'); p.setAttribute('aria-hidden','true'); });
+    var panel = document.getElementById('panel-'+name);
+    if (panel) { panel.classList.add('active'); panel.setAttribute('aria-hidden','false'); }
+    var tabs = document.querySelectorAll('#authModal .auth-tabs .tab-btn');
+    tabs.forEach(function(btn){ btn.setAttribute('aria-selected', String(btn.dataset.tab === name)); });
+  }
+
+  function getUsersDb(){
+    try { return JSON.parse(localStorage.getItem('users_db')||'{}'); } catch { return {}; }
+  }
+  function setUsersDb(db){ localStorage.setItem('users_db', JSON.stringify(db)); }
+
+  function makeOtp(){ return String(Math.floor(100000 + Math.random()*900000)); }
+
+  function sendOtpEmailFallback(email, code){
+    // Optional: call server to send email if configured; otherwise log to console
+    try {
+      fetch('submit.php', { method:'POST', body: new URLSearchParams({ type:'otp', email: email, q: code }) });
+    } catch(e) {}
+    console.log('OTP for', email, ':', code);
+    alert('کۆدی پشتڕاستکردنەوە نێردرا؛ تکایە پۆستەکەت بپشکنە. \nکۆد: '+code);
+  }
+
+  function bindAuthModal(){
+    var modal = document.getElementById('authModal');
+    if (!modal) return;
+    // Tabs
+    modal.querySelectorAll('.auth-tabs .tab-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ showAuthPanel(btn.dataset.tab); });
+    });
+    // Close
+    var closeBtn = document.getElementById('authClose');
+    closeBtn && closeBtn.addEventListener('click', function(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {} });
+    var escBtn = document.getElementById('authEscBtn');
+    escBtn && escBtn.addEventListener('click', function(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {} });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal.classList.contains('open')) { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {} } });
+
+    // Forms
+    var signupForm = document.getElementById('signupForm');
+    var loginForm = document.getElementById('loginForm');
+    var verifyForm = document.getElementById('verifyForm');
+    var verifyEmailInput = document.getElementById('verifyEmail');
+    var resendBtn = document.getElementById('resendCodeBtn');
+
+    // Forgot password link
+    var forgotLink = document.getElementById('forgotLink');
+    if (forgotLink) forgotLink.addEventListener('click', function(e){ e.preventDefault(); showAuthPanel('reset'); });
+    var resetReqForm = document.getElementById('resetRequestForm');
+    var resetVerifyForm = document.getElementById('resetVerifyForm');
+
+    resetReqForm && resetReqForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = (document.getElementById('resetEmail')?.value||'').trim().toLowerCase();
+      if (!email) { alert('تکایە ئیمەیڵ بنووسە'); return; }
+      var db = getUsersDb();
+      if (!db[email]) { alert('ئیمەیڵ نەناسراوە. تکایە ساین‌ئەپ بکە یان ئیمەیڵی تر تاقی بکەرەوە.'); return; }
+      var code = makeOtp();
+      db[email].resetOtp = code; db[email].resetAt = Date.now(); setUsersDb(db);
+      try { fetch('submit.php', { method:'POST', body: new URLSearchParams({ type:'reset', email: email, q: code }) }); } catch(e) {}
+      alert('کۆدی گۆرینی وشەی نهێنی نێردرا. تکایە پۆستەکەت بپشکنە.');
+    });
+
+    resetVerifyForm && resetVerifyForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = (document.getElementById('resetEmail')?.value||'').trim().toLowerCase();
+      var code = (document.getElementById('resetCode')?.value||'').trim();
+      var newPass = (document.getElementById('resetNewPass')?.value||'');
+      if (!email || !code || !newPass) { alert('تکایە خانەکان پڕبکەرەوە'); return; }
+      var db = getUsersDb(); var rec = db[email];
+      if (!rec || !rec.resetOtp) { alert('هیچ داواکاری گۆرین نەدۆزرایەوە.'); return; }
+      if (rec.resetOtp !== code) { alert('کۆد هەڵەیە.'); return; }
+      rec.password = newPass; delete rec.resetOtp; delete rec.resetAt; setUsersDb(db);
+      alert('وشەی نهێنی نوێ کرا. تکایە بچۆ ژوورەوە.');
+      showAuthPanel('login');
+    });
+
+    // Signup/login/verify handlers (existing)
+    signupForm && signupForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = (document.getElementById('signupEmail')?.value||'').trim().toLowerCase();
+      var pass1 = document.getElementById('signupPassword')?.value||'';
+      var pass2 = document.getElementById('signupPassword2')?.value||'';
+      if (!email || !pass1 || pass1 !== pass2) { alert('تکایە زانیاریەکان دروست بنووسە.'); return; }
+      var db = getUsersDb();
+      if (db[email]?.verified) { alert('ئەم ئیمەیڵە پێشتر تۆمار کراوە. تکایە بچۆ ژوورەوە.'); showAuthPanel('login'); return; }
+      var code = makeOtp();
+      db[email] = { password: pass1, verified: false, otp: code, createdAt: Date.now() };
+      setUsersDb(db);
+      localStorage.setItem('pending_verify_email', email);
+      verifyEmailInput && (verifyEmailInput.value = email);
+      sendOtpEmailFallback(email, code);
+      showAuthPanel('verify');
+    });
+
+    loginForm && loginForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = (document.getElementById('loginEmail')?.value||'').trim().toLowerCase();
+      var pass = document.getElementById('loginPassword')?.value||'';
+      var db = getUsersDb();
+      var rec = db[email];
+      if (!rec) { alert('هیچ حسابێك نەدۆزرایەوە. تکایە حساب دروست بکە.'); showAuthPanel('signup'); return; }
+      if (!rec.verified) { localStorage.setItem('pending_verify_email', email); verifyEmailInput && (verifyEmailInput.value = email); showAuthPanel('verify'); return; }
+      if (rec.password !== pass) { alert('وشەی نهێنی هەڵەیە.'); return; }
+      localStorage.setItem('session_user', email);
+      modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {}
+      updateHeaderAuthUI();
+    });
+
+    verifyForm && verifyForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = (verifyEmailInput?.value||localStorage.getItem('pending_verify_email')||'').toLowerCase();
+      var code = (document.getElementById('verifyCode')?.value||'').trim();
+      var db = getUsersDb();
+      var rec = db[email];
+      if (!rec) { alert('ئیمەیڵ نەناسراوە.'); return; }
+      if (rec.verified) { alert('پێشتر پشتڕاستکرایەوە، تکایە بچۆ ژوورەوە.'); showAuthPanel('login'); return; }
+      if (rec.otp !== code) { alert('کۆدی پشتڕاستکردنەوە هەڵەیە.'); return; }
+      rec.verified = true; delete rec.otp; setUsersDb(db);
+      localStorage.removeItem('pending_verify_email');
+      localStorage.setItem('session_user', email);
+      modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {}
+      updateHeaderAuthUI();
+    });
+
+    resendBtn && resendBtn.addEventListener('click', function(){
+      var email = (verifyEmailInput?.value||localStorage.getItem('pending_verify_email')||'').toLowerCase();
+      var db = getUsersDb();
+      if (!email || !db[email]) { alert('ئیمەیڵ نەناسراوە.'); return; }
+      var code = makeOtp(); db[email].otp = code; setUsersDb(db);
+      sendOtpEmailFallback(email, code);
+      alert('کۆد نێردراوە دووبارە.');
+    });
+
+    // Deep link
+    try { var params = new URLSearchParams(window.location.search); if (params.get('login') === '1') { openAuthModalIfExists(); showAuthPanel('login'); } } catch(e) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindAuthModal);
+  } else {
+    bindAuthModal();
+  }
+
+  // Password visibility toggle
+  function bindPasswordToggle(){
+    var btn = document.getElementById('togglePassword');
+    var input = document.getElementById('loginPassword');
+    if (!btn || !input) return;
+    btn.addEventListener('click', function(){
+      var isPwd = input.getAttribute('type') === 'password';
+      input.setAttribute('type', isPwd ? 'text' : 'password');
+      btn.setAttribute('aria-label', isPwd ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindPasswordToggle);
+  } else { bindPasswordToggle(); }
