@@ -1,23 +1,27 @@
-// ── FIREBASE CONFIG ──
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// ── FIREBASE CONFIG (Compat SDK) ──
+// پێویستە ئەم script ـانە لە index.html پێش firebase.js بخرێن:
+// <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+// <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+// <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC7jIwGVdqII0v53gFw83mP9Pa4PBSLg2I",
-  authDomain: "sanaria-website.vercel.app",
-  projectId: "sanush-website-datebase",
-  storageBucket: "sanush-website-datebase.firebasestorage.app",
+  apiKey:            "AIzaSyC7jIwGVdqII0v53gFw83mP9Pa4PBSLg2I",
+  authDomain:        "sanush-website-datebase.firebaseapp.com",
+  projectId:         "sanush-website-datebase",
+  storageBucket:     "sanush-website-datebase.firebasestorage.app",
   messagingSenderId: "336092110705",
-  appId: "1:336092110705:web:1b7b06b247ab1fae54e0d0",
-  measurementId: "G-3P54X84P0S"
+  appId:             "1:336092110705:web:1b7b06b247ab1fae54e0d0"
 };
 
-const app      = initializeApp(firebaseConfig);
-const auth     = getAuth(app);
-const db       = getFirestore(app);
-const provider = new GoogleAuthProvider();
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
-export { auth, db, provider, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, doc, setDoc, getDoc, onSnapshot };
+const _auth     = firebase.auth();
+const _db       = firebase.firestore();
+const _provider = new firebase.auth.GoogleAuthProvider();
+
+// Export وەک window properties بۆ script.js
+window.SANARIA_AUTH     = _auth;
+window.SANARIA_DB       = _db;
+window.SANARIA_PROVIDER = _provider;٧
