@@ -7,7 +7,7 @@ function initSanariaFirebase() {
       return;
     }
     var config = {
-      apiKey:            "AIzaSyC7jIwGVdqII0v53gFw83mP9Pa4PBSLg2I",
+      apiKey:            "AIzaSyC7jIwGVdqIIOv53gFw83mP9Pa4PBSLg2I",
       authDomain:        "sanush-website-datebase.firebaseapp.com",
       projectId:         "sanush-website-datebase",
       storageBucket:     "sanush-website-datebase.firebasestorage.app",
