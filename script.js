@@ -1,15 +1,11 @@
-import {
-  auth, db, provider,
-  signInWithPopup, signOut, onAuthStateChanged,
-  doc, setDoc, onSnapshot
-} from "./firebase.js";
+// ── script.js — Sanaria (Firebase Compat SDK) ──
 
 // ── STATE ──
-let accounts    = [];
-let activeTab   = 'all';
-let currentUser = null;
+let accounts      = [];
+let activeTab     = 'all';
+let currentUser   = null;
 let unsubListener = null;
-let pendingAction = null; // action to run after login
+let pendingAction = null;
 
 const CURRENCIES = [
   { val: 'IQD', label: 'دینار عێراقی' },
@@ -24,24 +20,32 @@ function curLabel(v) { return (CURRENCIES.find(c => c.val === v) || { label: v }
 function uid()   { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function today() { return new Date().toISOString().split('T')[0]; }
 
+// ── WAIT FOR FIREBASE ──
+function getAuth() { return window.SANARIA_AUTH; }
+function getDB()   { return window.SANARIA_DB; }
+function getProvider() { return window.SANARIA_PROVIDER; }
+
 // ── AUTH GUARD ──
-// requireAuth(fn) — if logged in runs fn(), else shows login modal and queues fn
 window.requireAuth = (fn) => {
-  if (currentUser) { fn(); }
-  else { pendingAction = fn; showLoginModal(); }
+  if (currentUser) fn();
+  else { pendingAction = fn; showLoginModal('login'); }
 };
 
 // ── CLOUD ──
 async function saveToCloud() {
   if (!currentUser) return;
-  await setDoc(doc(db, 'users', currentUser.uid), { accounts });
+  await getDB().collection('users').doc(currentUser.uid).set({ accounts });
 }
 
 function startListening(uid) {
   if (unsubListener) unsubListener();
-  unsubListener = onSnapshot(doc(db, 'users', uid), (snap) => {
-    accounts = snap.exists() ? (snap.data().accounts || []) : [];
-    if (!snap.exists()) seedDemo();
+  unsubListener = getDB().collection('users').doc(uid).onSnapshot((snap) => {
+    if (snap.exists) {
+      accounts = snap.data().accounts || [];
+    } else {
+      accounts = [];
+      seedDemo();
+    }
     renderList();
   });
 }
@@ -63,43 +67,21 @@ function seedDemo() {
   saveToCloud();
 }
 
-// ── AUTH STATE LISTENER ──
-onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-  updateTopbarUI(user);
-  if (user) {
-    closeModal('modal-login');
-    startListening(user.uid);
-    // run pending action if any
-    if (pendingAction) { const fn = pendingAction; pendingAction = null; fn(); }
-  } else {
-    stopListening();
-    renderList();
-  }
-});
-
-// ── AUTH FUNCTIONS ──
-window.handleSignIn = async () => {
-  const btn = document.getElementById('google-sign-in-btn');
-  btn.disabled = true;
-  btn.textContent = 'چاوەڕوانبە...';
-  try {
-    await signInWithPopup(auth, provider);
-    toast('✅ بەخێربێیت!');
-  } catch (e) {
-    toast('❌ داخیلبوون سەرنەکەوت');
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.8 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.2C9.5 35.8 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg> داخیلبوون بە Google`;
-  }
-};
-
-window.handleSignOut = async () => {
-  closeUserMenu();
-  stopListening();
-  await signOut(auth);
-  renderList();
-  toast('👋 لۆگ ئاوت کرایەوە');
-};
+// ── AUTH STATE ──
+function initAuth() {
+  getAuth().onAuthStateChanged((user) => {
+    currentUser = user;
+    updateTopbarUI(user);
+    if (user) {
+      closeModal('modal-login');
+      startListening(user.uid);
+      if (pendingAction) { const fn = pendingAction; pendingAction = null; fn(); }
+    } else {
+      stopListening();
+      renderList();
+    }
+  });
+}
 
 // ── TOPBAR UI ──
 function updateTopbarUI(user) {
@@ -109,17 +91,19 @@ function updateTopbarUI(user) {
   const menuAvt   = document.getElementById('menu-avatar');
   const menuName  = document.getElementById('menu-name');
   const menuEmail = document.getElementById('menu-email');
-
+  if (!loginBtn) return;
   if (user) {
-    loginBtn.style.display  = 'none';
-    userBtn.style.display   = 'flex';
-    avatar.src              = user.photoURL || '';
-    if (menuAvt)   { menuAvt.src           = user.photoURL || ''; }
-    if (menuName)  { menuName.textContent  = user.displayName || ''; }
-    if (menuEmail) { menuEmail.textContent = user.email || ''; }
+    loginBtn.style.display = 'none';
+    userBtn.style.display  = 'flex';
+    const photo = user.photoURL ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email)}&background=00a8b5&color=fff&size=64`;
+    avatar.src  = photo;
+    if (menuAvt)   menuAvt.src           = photo;
+    if (menuName)  menuName.textContent  = user.displayName || user.email.split('@')[0];
+    if (menuEmail) menuEmail.textContent = user.email;
   } else {
-    loginBtn.style.display  = 'flex';
-    userBtn.style.display   = 'none';
+    loginBtn.style.display = 'flex';
+    userBtn.style.display  = 'none';
   }
 }
 
@@ -128,26 +112,101 @@ window.toggleUserMenu = () => {
   const m = document.getElementById('user-menu');
   m.style.display = m.style.display === 'none' ? 'block' : 'none';
 };
-function closeUserMenu() {
-  const m = document.getElementById('user-menu');
-  if (m) m.style.display = 'none';
-}
 document.addEventListener('click', (e) => {
   const menu    = document.getElementById('user-menu');
   const userBtn = document.getElementById('topbar-user-btn');
-  if (menu && userBtn && !menu.contains(e.target) && !userBtn.contains(e.target)) {
+  if (menu && userBtn && !menu.contains(e.target) && !userBtn.contains(e.target))
     menu.style.display = 'none';
-  }
 });
 
-// ── LOGIN MODAL ──
-window.showLoginModal = () => {
-  const btn = document.getElementById('google-sign-in-btn');
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.8 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.2C9.5 35.8 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg> داخیلبوون بە Google`;
-  }
+// ── AUTH MODAL ──
+window.showLoginModal = (tab = 'login') => {
+  clearAuthError();
   document.getElementById('modal-login').classList.add('show');
+  switchTab(tab);
+};
+
+window.switchTab = (tab) => {
+  document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  clearAuthError();
+};
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  if (!el) return;
+  el.textContent   = msg;
+  el.style.display = 'block';
+}
+function clearAuthError() {
+  const el = document.getElementById('auth-error');
+  if (el) { el.textContent = ''; el.style.display = 'none'; }
+}
+
+// ── EMAIL LOGIN ──
+window.doEmailLogin = async () => {
+  clearAuthError();
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  if (!email || !pass) { showAuthError('تکایە هەموو خانەکان پڕ بکەرەوە'); return; }
+  try {
+    await getAuth().signInWithEmailAndPassword(email, pass);
+    toast('✅ بەخێربێیت!');
+  } catch (e) {
+    const msgs = {
+      'auth/user-not-found':     'ئەم ئیمەیڵە تۆمار نەکراوە',
+      'auth/wrong-password':     'پاسووەردەکە هەڵەیە',
+      'auth/invalid-email':      'ئیمەیڵەکە هەڵەیە',
+      'auth/invalid-credential': 'ئیمەیڵ یان پاسووەرد هەڵەیە',
+      'auth/too-many-requests':  'زۆر هەوڵت دا، کەمێ چاوەڕوانبە',
+    };
+    showAuthError(msgs[e.code] || 'هەڵەیەک ڕووی دا: ' + e.message);
+  }
+};
+
+// ── REGISTER ──
+window.doRegister = async () => {
+  clearAuthError();
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  if (!name || !email || !pass) { showAuthError('تکایە هەموو خانەکان پڕ بکەرەوە'); return; }
+  if (pass.length < 6) { showAuthError('پاسووەرد دەبێت ٦ پیت زیاتر بێت'); return; }
+  try {
+    const cred = await getAuth().createUserWithEmailAndPassword(email, pass);
+    await cred.user.updateProfile({ displayName: name });
+    toast('✅ تۆمارکردن سەرکەوت، بەخێربێیت!');
+  } catch (e) {
+    const msgs = {
+      'auth/email-already-in-use': 'ئەم ئیمەیڵە پێشتر تۆمارکراوە',
+      'auth/invalid-email':        'ئیمەیڵەکە هەڵەیە',
+      'auth/weak-password':        'پاسووەرد زۆر سووک، قورستر بکەرەوە',
+    };
+    showAuthError(msgs[e.code] || 'هەڵەیەک ڕووی دا: ' + e.message);
+  }
+};
+
+// ── GOOGLE LOGIN ──
+window.handleSignIn = async () => {
+  clearAuthError();
+  try {
+    await getAuth().signInWithPopup(getProvider());
+    toast('✅ بەخێربێیت!');
+  } catch (e) {
+    showAuthError('داخیلبوون بە Google سەرنەکەوت: ' + e.message);
+  }
+};
+
+// ── LOGOUT ──
+window.handleSignOut = async () => {
+  const m = document.getElementById('user-menu');
+  if (m) m.style.display = 'none';
+  stopListening();
+  await getAuth().signOut();
+  renderList();
+  toast('👋 لۆگ ئاوت کرایەوە');
 };
 
 // ── PAGES ──
@@ -172,8 +231,8 @@ function getBals(a) {
   let bals = {};
   (a.transactions || []).forEach(t => {
     if (!bals[t.currency]) bals[t.currency] = { debit: 0, credit: 0 };
-    if (t.type === 'debit') bals[t.currency].debit += Number(t.amount);
-    else bals[t.currency].credit += Number(t.amount);
+    if (t.type === 'debit') bals[t.currency].debit  += Number(t.amount);
+    else                    bals[t.currency].credit += Number(t.amount);
   });
   return bals;
 }
@@ -181,18 +240,19 @@ function getBals(a) {
 function renderList() {
   const el = document.getElementById('user-list');
   if (!el) return;
-
   if (!currentUser) {
     el.innerHTML = `
-      <div class="login-prompt" onclick="showLoginModal()">
+      <div class="login-prompt" onclick="showLoginModal('login')">
         <div class="lp-icon">🔐</div>
         <div class="lp-title">داخیلبوون پێویستە</div>
         <div class="lp-sub">بۆ بینین و بەڕێوەبردنی ئەکاونتەکانت</div>
-        <button class="lp-btn">داخیلبوون بە Google</button>
+        <div class="lp-btns">
+          <button class="lp-btn-main" onclick="event.stopPropagation();showLoginModal('login')">چوونەژوورەوە</button>
+          <button class="lp-btn-sec"  onclick="event.stopPropagation();showLoginModal('register')">تۆمارکردن</button>
+        </div>
       </div>`;
     return;
   }
-
   let list = activeTab === 'all' ? accounts : accounts.filter(a => a.type === activeTab);
   if (!list.length) {
     el.innerHTML = '<div class="empty-msg" style="padding:28px 0">هیچ ئەکاونتێک نییە.<br>دووگمەی + بکەرەوە بۆ زیادکردن.</div>';
@@ -284,7 +344,7 @@ window.openForm    = (id) => {
 
 // ── ADD TRANS ──
 window.addTrans = async (id, type) => {
-  if (!currentUser) { pendingAction = () => window.addTrans(id, type); showLoginModal(); return; }
+  if (!currentUser) { pendingAction = () => window.addTrans(id, type); showLoginModal('login'); return; }
   const a = accounts.find(a => a.id === id); if (!a) return;
   const amt = parseFloat(document.getElementById('amt-' + id).value);
   if (!amt || amt <= 0) { toast('تکایە بڕی پارەکە بنووسە'); return; }
@@ -319,7 +379,7 @@ window.askDeleteUser = (id, name) => {
 
 // ── SAVE ACCOUNT ──
 window.saveAccount = async () => {
-  if (!currentUser) { showLoginModal(); return; }
+  if (!currentUser) { showLoginModal('login'); return; }
   const name = document.getElementById('nf-name').value.trim();
   if (!name) { toast('تکایە ناوەکەت بنووسە'); return; }
   accounts.push({
@@ -341,8 +401,8 @@ window.showSummaryModal = () => {
   accounts.forEach(a => {
     (a.transactions || []).forEach(t => {
       if (!totals[t.currency]) totals[t.currency] = { debit: 0, credit: 0 };
-      if (t.type === 'debit') totals[t.currency].debit += Number(t.amount);
-      else totals[t.currency].credit += Number(t.amount);
+      if (t.type === 'debit') totals[t.currency].debit  += Number(t.amount);
+      else                    totals[t.currency].credit += Number(t.amount);
     });
   });
   const rows = Object.entries(totals).map(([cur, b]) => {
@@ -369,9 +429,7 @@ window.showDetail = (aid) => {
 // ── MODAL ──
 window.closeModal = (id) => document.getElementById(id).classList.remove('show');
 document.querySelectorAll('.modal-bg').forEach(el =>
-  el.addEventListener('click', e => {
-    if (e.target === el) el.classList.remove('show');
-  })
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); })
 );
 
 // ── TOAST ──
@@ -381,165 +439,7 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2300);
 }
 
-////end line
-
-  // ===== Auth Modal Logic: tabs, signup/login, OTP verification =====
-  function showAuthPanel(name){
-    var panels = document.querySelectorAll('#authModal .auth-panel');
-    panels.forEach(function(p){ p.classList.remove('active'); p.setAttribute('aria-hidden','true'); });
-    var panel = document.getElementById('panel-'+name);
-    if (panel) { panel.classList.add('active'); panel.setAttribute('aria-hidden','false'); }
-    var tabs = document.querySelectorAll('#authModal .auth-tabs .tab-btn');
-    tabs.forEach(function(btn){ btn.setAttribute('aria-selected', String(btn.dataset.tab === name)); });
-  }
-
-  function getUsersDb(){
-    try { return JSON.parse(localStorage.getItem('users_db')||'{}'); } catch { return {}; }
-  }
-  function setUsersDb(db){ localStorage.setItem('users_db', JSON.stringify(db)); }
-
-  function makeOtp(){ return String(Math.floor(100000 + Math.random()*900000)); }
-
-  function sendOtpEmailFallback(email, code){
-    // Optional: call server to send email if configured; otherwise log to console
-    try {
-      fetch('submit.php', { method:'POST', body: new URLSearchParams({ type:'otp', email: email, q: code }) });
-    } catch(e) {}
-    console.log('OTP for', email, ':', code);
-    alert('کۆدی پشتڕاستکردنەوە نێردرا؛ تکایە پۆستەکەت بپشکنە. \nکۆد: '+code);
-  }
-
-  function bindAuthModal(){
-    var modal = document.getElementById('authModal');
-    if (!modal) return;
-    // Tabs
-    modal.querySelectorAll('.auth-tabs .tab-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){ showAuthPanel(btn.dataset.tab); });
-    });
-    // Close
-    var closeBtn = document.getElementById('authClose');
-    closeBtn && closeBtn.addEventListener('click', function(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {} });
-    var escBtn = document.getElementById('authEscBtn');
-    escBtn && escBtn.addEventListener('click', function(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {} });
-    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal.classList.contains('open')) { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {} } });
-
-    // Forms
-    var signupForm = document.getElementById('signupForm');
-    var loginForm = document.getElementById('loginForm');
-    var verifyForm = document.getElementById('verifyForm');
-    var verifyEmailInput = document.getElementById('verifyEmail');
-    var resendBtn = document.getElementById('resendCodeBtn');
-
-    // Forgot password link
-    var forgotLink = document.getElementById('forgotLink');
-    if (forgotLink) forgotLink.addEventListener('click', function(e){ e.preventDefault(); showAuthPanel('reset'); });
-    var resetReqForm = document.getElementById('resetRequestForm');
-    var resetVerifyForm = document.getElementById('resetVerifyForm');
-
-    resetReqForm && resetReqForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      var email = (document.getElementById('resetEmail')?.value||'').trim().toLowerCase();
-      if (!email) { alert('تکایە ئیمەیڵ بنووسە'); return; }
-      var db = getUsersDb();
-      if (!db[email]) { alert('ئیمەیڵ نەناسراوە. تکایە ساین‌ئەپ بکە یان ئیمەیڵی تر تاقی بکەرەوە.'); return; }
-      var code = makeOtp();
-      db[email].resetOtp = code; db[email].resetAt = Date.now(); setUsersDb(db);
-      try { fetch('submit.php', { method:'POST', body: new URLSearchParams({ type:'reset', email: email, q: code }) }); } catch(e) {}
-      alert('کۆدی گۆرینی وشەی نهێنی نێردرا. تکایە پۆستەکەت بپشکنە.');
-    });
-
-    resetVerifyForm && resetVerifyForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      var email = (document.getElementById('resetEmail')?.value||'').trim().toLowerCase();
-      var code = (document.getElementById('resetCode')?.value||'').trim();
-      var newPass = (document.getElementById('resetNewPass')?.value||'');
-      if (!email || !code || !newPass) { alert('تکایە خانەکان پڕبکەرەوە'); return; }
-      var db = getUsersDb(); var rec = db[email];
-      if (!rec || !rec.resetOtp) { alert('هیچ داواکاری گۆرین نەدۆزرایەوە.'); return; }
-      if (rec.resetOtp !== code) { alert('کۆد هەڵەیە.'); return; }
-      rec.password = newPass; delete rec.resetOtp; delete rec.resetAt; setUsersDb(db);
-      alert('وشەی نهێنی نوێ کرا. تکایە بچۆ ژوورەوە.');
-      showAuthPanel('login');
-    });
-
-    // Signup/login/verify handlers (existing)
-    signupForm && signupForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      var email = (document.getElementById('signupEmail')?.value||'').trim().toLowerCase();
-      var pass1 = document.getElementById('signupPassword')?.value||'';
-      var pass2 = document.getElementById('signupPassword2')?.value||'';
-      if (!email || !pass1 || pass1 !== pass2) { alert('تکایە زانیاریەکان دروست بنووسە.'); return; }
-      var db = getUsersDb();
-      if (db[email]?.verified) { alert('ئەم ئیمەیڵە پێشتر تۆمار کراوە. تکایە بچۆ ژوورەوە.'); showAuthPanel('login'); return; }
-      var code = makeOtp();
-      db[email] = { password: pass1, verified: false, otp: code, createdAt: Date.now() };
-      setUsersDb(db);
-      localStorage.setItem('pending_verify_email', email);
-      verifyEmailInput && (verifyEmailInput.value = email);
-      sendOtpEmailFallback(email, code);
-      showAuthPanel('verify');
-    });
-
-    loginForm && loginForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      var email = (document.getElementById('loginEmail')?.value||'').trim().toLowerCase();
-      var pass = document.getElementById('loginPassword')?.value||'';
-      var db = getUsersDb();
-      var rec = db[email];
-      if (!rec) { alert('هیچ حسابێك نەدۆزرایەوە. تکایە حساب دروست بکە.'); showAuthPanel('signup'); return; }
-      if (!rec.verified) { localStorage.setItem('pending_verify_email', email); verifyEmailInput && (verifyEmailInput.value = email); showAuthPanel('verify'); return; }
-      if (rec.password !== pass) { alert('وشەی نهێنی هەڵەیە.'); return; }
-      localStorage.setItem('session_user', email);
-      modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {}
-      updateHeaderAuthUI();
-    });
-
-    verifyForm && verifyForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      var email = (verifyEmailInput?.value||localStorage.getItem('pending_verify_email')||'').toLowerCase();
-      var code = (document.getElementById('verifyCode')?.value||'').trim();
-      var db = getUsersDb();
-      var rec = db[email];
-      if (!rec) { alert('ئیمەیڵ نەناسراوە.'); return; }
-      if (rec.verified) { alert('پێشتر پشتڕاستکرایەوە، تکایە بچۆ ژوورەوە.'); showAuthPanel('login'); return; }
-      if (rec.otp !== code) { alert('کۆدی پشتڕاستکردنەوە هەڵەیە.'); return; }
-      rec.verified = true; delete rec.otp; setUsersDb(db);
-      localStorage.removeItem('pending_verify_email');
-      localStorage.setItem('session_user', email);
-      modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); try { document.body.style.overflow = 'auto'; } catch {}
-      updateHeaderAuthUI();
-    });
-
-    resendBtn && resendBtn.addEventListener('click', function(){
-      var email = (verifyEmailInput?.value||localStorage.getItem('pending_verify_email')||'').toLowerCase();
-      var db = getUsersDb();
-      if (!email || !db[email]) { alert('ئیمەیڵ نەناسراوە.'); return; }
-      var code = makeOtp(); db[email].otp = code; setUsersDb(db);
-      sendOtpEmailFallback(email, code);
-      alert('کۆد نێردراوە دووبارە.');
-    });
-
-    // Deep link
-    try { var params = new URLSearchParams(window.location.search); if (params.get('login') === '1') { openAuthModalIfExists(); showAuthPanel('login'); } } catch(e) {}
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindAuthModal);
-  } else {
-    bindAuthModal();
-  }
-
-  // Password visibility toggle
-  function bindPasswordToggle(){
-    var btn = document.getElementById('togglePassword');
-    var input = document.getElementById('loginPassword');
-    if (!btn || !input) return;
-    btn.addEventListener('click', function(){
-      var isPwd = input.getAttribute('type') === 'password';
-      input.setAttribute('type', isPwd ? 'text' : 'password');
-      btn.setAttribute('aria-label', isPwd ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
-    });
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindPasswordToggle);
-  } else { bindPasswordToggle(); }
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+});
