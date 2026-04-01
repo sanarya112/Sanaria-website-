@@ -21,24 +21,9 @@ function uid()   { return Date.now().toString(36) + Math.random().toString(36).s
 function today() { return new Date().toISOString().split('T')[0]; }
 
 // ── WAIT FOR FIREBASE ──
-function getAuth() {
-  if (!window.SANARIA_AUTH) {
-    try { return firebase.auth(); } catch(e) {}
-  }
-  return window.SANARIA_AUTH;
-}
-function getDB() {
-  if (!window.SANARIA_DB) {
-    try { return firebase.firestore(); } catch(e) {}
-  }
-  return window.SANARIA_DB;
-}
-function getProvider() {
-  if (!window.SANARIA_PROVIDER) {
-    try { return new firebase.auth.GoogleAuthProvider(); } catch(e) {}
-  }
-  return window.SANARIA_PROVIDER;
-}
+function getAuth() { return window.SANARIA_AUTH; }
+function getDB()   { return window.SANARIA_DB; }
+function getProvider() { return window.SANARIA_PROVIDER; }
 
 // ── AUTH GUARD ──
 window.requireAuth = (fn) => {
