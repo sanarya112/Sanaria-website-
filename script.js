@@ -114,19 +114,31 @@ function initAuth(){
 // ── CLOUD SAVE ──
 function saveToCloud(){
   if (!_user) return;
-  window._db.collection('users').doc(_user.uid).set({accounts:_accounts})
-    .catch(function(e){ console.error('Save error',e); });
+  // بەکارهێنانی {merge: true} بۆ ئەوەی داتای کۆن نەسرێتەوە
+  window._db.collection('users').doc(_user.uid).set({accounts: _accounts}, {merge: true})
+    .then(function() { 
+      console.log('✅ داتاکە بە سەرکەوتوویی لە کڵاود سەیڤ بوو'); 
+    })
+    .catch(function(e){ 
+      console.error('کێشە لە سەیڤکردن هەیە:', e); 
+      alert('نەتوانرا داتاکە سەیڤ بکرێت! دڵنیابە لە ئینتەرنێتەکەت یان یاساکانی فایەربەیس.');
+    });
 }
 
 // ── REALTIME LISTENER ──
 function startListening(uid){
   if (_unsub) _unsub();
+  // لێرەدا فەنکشنی error مان زیاد کردووە بۆ ئەوەی بزانین بۆچی نایەتەوە
   _unsub = window._db.collection('users').doc(uid).onSnapshot(function(snap){
     _accounts = snap.exists ? (snap.data().accounts||[]) : [];
     if (!snap.exists) seedDemo();
     renderList();
+  }, function(error) {
+    console.error("🔴 کێشە لە هێنانەوەی داتاکان:", error);
+    alert("کێشەیەک هەیە لە هێنانەوەی داتاکان، تکایە یاساکانی (Rules) فایەربەیس چاک بکە.");
   });
 }
+
 function stopListening(){
   if (_unsub){_unsub();_unsub=null;}
   _accounts=[];
@@ -135,13 +147,14 @@ function seedDemo(){
   _accounts=[{
     id:'demo1',name:'ئەڤریم',phone:'0770000000',email:'',type:'customer',
     transactions:[
-      {id:'t1',type:'debit', amount:50, currency:'BHD',date:'2026-03-06',desc:''},
-      {id:'t2',type:'debit', amount:100,currency:'USD',date:'2026-03-06',desc:''},
-      {id:'t3',type:'credit',amount:50, currency:'USD',date:'2026-03-06',desc:''},
+      {id:'t1',type:'debit', amount:50, currency:'BHD',date:'2026-03-06',desc:'نموونە'},
+      {id:'t2',type:'debit', amount:100,currency:'USD',date:'2026-03-06',desc:'نموونە'},
+      {id:'t3',type:'credit',amount:50, currency:'USD',date:'2026-03-06',desc:'نموونە'},
     ]
   }];
   saveToCloud();
 }
+
 
 // ── AUTH GUARD ──
 window.requireAuth = function(fn){
