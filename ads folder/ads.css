@@ -1,0 +1,19 @@
+/* ── AD STYLING ── */
+
+.ad-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.05); /* باکگراوندێکی کەم */
+    border-radius: 8px;
+    min-height: 100px;
+    overflow: hidden;
+}
+
+#adsterra-zone, #mybid-zone {
+    width: 100%;
+    max-width: 728px; /* قەبارەی ستاندارد */
+    text-align: center;
+}
