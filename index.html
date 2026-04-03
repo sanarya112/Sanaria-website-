@@ -1,12 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="ckb" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بەڕێوەبردنی ئەکاونتەکەم</title>
+  <title>سەناریا — بەڕێوەبردنی ئەکاونت</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase Compat SDK -->
+  <!-- Firebase — پێش هەموو شتێک لە head دا -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -14,106 +15,92 @@
 </head>
 <body>
 
-
-  
 <div id="app">
-
-  <!-- ── MAIN PAGE ── -->
+  <!-- MAIN PAGE -->
   <div id="page-main" class="page active">
-
     <div class="topbar">
       <div class="topbar-icons">
         <button onclick="showSummaryModal()">⋮</button>
       </div>
       <div class="topbar-title">بەڕێوەبردنی ئەکاونتەکەم</div>
       <div class="topbar-icons">
-        <!-- not logged in -->
-        <button id="topbar-login-btn" onclick="showLoginModal('login')" title="داخیلبوون">🔑</button>
-        <!-- logged in -->
+        <button id="topbar-login-btn" onclick="showLoginModal('login')">🔑</button>
         <button id="topbar-user-btn" onclick="toggleUserMenu()" style="display:none">
-          <img id="topbar-avatar" src="" alt=""
-            style="width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.6);object-fit:cover;">
+          <img id="topbar-avatar" src="" alt="" style="width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.6);object-fit:cover;">
         </button>
       </div>
     </div>
 
-    <!-- USER MENU -->
-    <div id="user-menu" class="user-menu" style="display:none">
-      <div class="user-menu-info">
-        <img id="menu-avatar" src="" alt="">
-        <div>
-          <div id="menu-name"  class="menu-name"></div>
-          <div id="menu-email" class="menu-email"></div>
-        </div>
+```
+<!-- USER MENU -->
+<div id="user-menu" class="user-menu" style="display:none">
+  <div class="user-menu-info">
+    <img id="menu-avatar" src="" alt="">
+    <div>
+      <div id="menu-name" class="menu-name"></div>
+      <div id="menu-email" class="menu-email"></div>
+    </div>
+  </div>
+  <div class="user-menu-divider"></div>
+  <button class="menu-logout-btn" onclick="handleSignOut()"><span>🚪</span> لۆگ ئاوت</button>
+</div>
+
+<!-- AD TOP - MyBidAds -->
+<div class="ad-banner">
+  <script type="text/javascript">
+    var infolinks_pid = 3435893;
+    var infolinks_wsid = 0;
+  </script>
+  <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn" onclick="filterTab('supplier',this)">دابینکەرەکان</button>
+  <button class="tab-btn" onclick="filterTab('customer',this)">کڕیارەکان</button>
+  <button class="tab-btn active" onclick="filterTab('all',this)">گشتی</button>
+</div>
+
+<div class="scroll-area">
+  <div class="action-cards">
+    <div class="action-card" onclick="requireAuth(()=>gotoPage('page-new'))">
+      <div class="ac-circle">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+          <line x1="12" y1="7" x2="12" y2="17" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="7" y1="12" x2="17" y2="12" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
       </div>
-      <div class="user-menu-divider"></div>
-      <button class="menu-logout-btn" onclick="handleSignOut()">
-        <span>🚪</span> لۆگ ئاوت
-      </button>
+      <div class="card-label">کردنەوەی ئەکاونتی نوێ</div>
     </div>
-
-    <!-- AD TOP -->
-    <div class="ad-banner" id="ad-top">
-      <div id="mybitads-top"></div>
-      <script>
-        (function(){
-          var s=document.createElement('script');
-          s.async=true;
-          s.src='https://mybitads.com/show/?id=banner&w=320&h=50';
-          document.getElementById('mybitads-top').appendChild(s);
-        })();
-      </script>
+    <div class="action-card" onclick="showSummaryModal()">
+      <span class="icon">📊</span>
+      <div class="card-label">ڕاپۆرتی کۆی بڕەکان</div>
     </div>
-
-    <div class="tabs">
-      <button class="tab-btn" onclick="filterTab('supplier',this)">دابینکەرەکان</button>
-      <button class="tab-btn" onclick="filterTab('customer',this)">کڕیارەکان</button>
-      <button class="tab-btn active" onclick="filterTab('all',this)">گشتی</button>
+    <div class="action-card">
+      <span class="icon">💻</span>
+      <div class="card-label">بینین لە کۆمپیوتەر</div>
     </div>
+  </div>
+  <div class="user-list" id="user-list"></div>
 
-    <div class="scroll-area">
-      <div class="action-cards">
-        <div class="action-card" onclick="requireAuth(()=>gotoPage('page-new'))">
-          <div class="ac-circle">
-            <svg viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
-              <line x1="12" y1="7" x2="12" y2="17" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
-              <line x1="7" y1="12" x2="17" y2="12" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="card-label">کردنەوەی ئەکاونتی نوێ</div>
-        </div>
-        <div class="action-card" onclick="showSummaryModal()">
-          <span class="icon">📊</span>
-          <div class="card-label">ڕاپۆرتی کۆی بڕەکان</div>
-        </div>
-        <div class="action-card">
-          <span class="icon">💻</span>
-          <div class="card-label">بینین لە ڕێگەی کۆمپیوتەر</div>
-        </div>
-      </div>
+  <!-- AD MIDDLE - MyBidAds -->
+  <div class="ad-banner ad-middle">
+    <ins class="adsbymybidads"
+      data-ad-client="your-mybidads-client-id"
+      data-ad-slot="your-slot-id"
+      style="display:block">
+    </ins>
+  </div>
+</div>
 
-      <div class="user-list" id="user-list"></div>
+<div class="bottom-nav" onclick="showSummaryModal()">وردەکارییەکان</div>
+<button class="fab show" onclick="requireAuth(()=>gotoPage('page-new'))">+</button>
+```
 
-      <!-- AD MIDDLE -->
-      <div class="ad-banner ad-middle">
-        <div id="mybitads-mid"></div>
-        <script>
-          (function(){
-            var s=document.createElement('script');
-            s.async=true;
-            s.src='https://mybitads.com/show/?id=rectangle&w=300&h=250';
-            document.getElementById('mybitads-mid').appendChild(s);
-          })();
-        </script>
-      </div>
-    </div>
-
-    <div class="bottom-nav" onclick="showSummaryModal()">وردەکارییەکان</div>
-    <button class="fab show" onclick="requireAuth(()=>gotoPage('page-new'))">+</button>
   </div>
 
-  <!-- ── NEW ACCOUNT PAGE ── -->
+  <!-- NEW ACCOUNT PAGE -->
+
   <div id="page-new" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="gotoPage('page-main')">→</button>
@@ -141,97 +128,101 @@
       </button>
     </div>
   </div>
-
 </div>
 
-<!-- ══ LOGIN / REGISTER MODAL ══ -->
+<!-- ══ LOGIN MODAL ══ -->
+
 <div class="modal-bg" id="modal-login">
   <div class="login-box">
-
-    <!-- close -->
     <button class="login-close-btn" onclick="closeModal('modal-login')">×</button>
-
-    <!-- logo -->
     <div class="login-logo">
       <svg viewBox="0 0 62 62" fill="none" width="46" height="46">
         <rect x="8" y="6" width="46" height="50" rx="8" fill="#00a8b5" fill-opacity=".2" stroke="#00a8b5" stroke-width="2"/>
         <rect x="15" y="16" width="32" height="12" rx="4" fill="#00a8b5" fill-opacity=".3"/>
-        <circle cx="22" cy="38" r="4" fill="#00a8b5"/>
-        <circle cx="31" cy="38" r="4" fill="#00a8b5"/>
-        <circle cx="40" cy="38" r="4" fill="#00a8b5"/>
-        <circle cx="22" cy="48" r="4" fill="#00a8b5"/>
+        <circle cx="22" cy="38" r="4" fill="#00a8b5"/><circle cx="31" cy="38" r="4" fill="#00a8b5"/>
+        <circle cx="40" cy="38" r="4" fill="#00a8b5"/><circle cx="22" cy="48" r="4" fill="#00a8b5"/>
         <circle cx="31" cy="48" r="4" fill="#00a8b5"/>
         <rect x="36" y="44" width="8" height="8" rx="2" fill="#00e5ff"/>
       </svg>
     </div>
-
-    <!-- tabs -->
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login"    onclick="switchTab('login')">چوونەژوورەوە</button>
       <button class="auth-tab"        id="tab-register" onclick="switchTab('register')">تۆمارکردن</button>
     </div>
 
-    <!-- LOGIN FORM -->
-    <div id="form-login" class="auth-form">
-      <div class="auth-field">
-        <span class="af-icon">✉️</span>
-        <input type="email" id="li-email" placeholder="ئیمەیڵ" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <span class="af-icon">🔒</span>
-        <input type="password" id="li-pass" placeholder="پاسووەرد" autocomplete="current-password">
-      </div>
-      <button class="auth-submit-btn" onclick="doEmailLogin()">چوونەژوورەوە</button>
+```
+<!-- LOGIN -->
+<div id="form-login" class="auth-form">
+  <div class="auth-field">
+    <span class="af-icon">✉️</span>
+    <input type="email" id="li-email" placeholder="ئیمەیڵ" autocomplete="email">
+  </div>
+  <div class="auth-field">
+    <span class="af-icon">🔒</span>
+    <input type="password" id="li-pass" placeholder="پاسووەرد" autocomplete="current-password">
+  </div>
+  <button class="auth-submit-btn" onclick="doEmailLogin()">چوونەژوورەوە</button>
+  <div class="auth-or"><span>یان</span></div>
+  <button class="google-btn" onclick="handleSignIn()">
+    <svg width="18" height="18" viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.8 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.2C9.5 35.8 16.3 44 24 44z"/>
+      <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.6-.4-3.9z"/>
+    </svg>
+    Google بە داخیلبوون
+  </button>
+</div>
 
-      <div class="auth-or"><span>یان</span></div>
+<!-- REGISTER -->
+<div id="form-register" class="auth-form" style="display:none">
+  <div class="auth-field">
+    <span class="af-icon">👤</span>
+    <input type="text" id="reg-name" placeholder="ناوی تەواو">
+  </div>
+  <div class="auth-field">
+    <span class="af-icon">✉️</span>
+    <input type="email" id="reg-email" placeholder="ئیمەیڵ" autocomplete="email">
+  </div>
+  <div class="auth-field">
+    <span class="af-icon">🔒</span>
+    <input type="password" id="reg-pass" placeholder="پاسووەرد (٦ پیت زیاتر)" autocomplete="new-password">
+  </div>
+  <button class="auth-submit-btn" onclick="doRegister()">تۆمارکردن و داخیلبوون</button>
+  <div class="auth-or"><span>یان</span></div>
+  <button class="google-btn" onclick="handleSignIn()">
+    <svg width="18" height="18" viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.8 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.2C9.5 35.8 16.3 44 24 44z"/>
+      <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.6-.4-3.9z"/>
+    </svg>
+    Google بە داخیلبوون
+  </button>
+</div>
 
-      <button class="google-btn" onclick="handleSignIn()">
-        <svg width="18" height="18" viewBox="0 0 48 48">
-          <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
-          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.8 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
-          <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.2C9.5 35.8 16.3 44 24 44z"/>
-          <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.6-.4-3.9z"/>
-        </svg>
-        Google بە داخیلبوون
-      </button>
-    </div>
-
-    <!-- REGISTER FORM -->
-    <div id="form-register" class="auth-form" style="display:none">
-      <div class="auth-field">
-        <span class="af-icon">👤</span>
-        <input type="text"     id="reg-name"  placeholder="ناوی تەواو">
-      </div>
-      <div class="auth-field">
-        <span class="af-icon">✉️</span>
-        <input type="email"    id="reg-email" placeholder="ئیمەیڵ" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <span class="af-icon">🔒</span>
-        <input type="password" id="reg-pass"  placeholder="پاسووەرد (٦ پیت زیاتر)" autocomplete="new-password">
-      </div>
-      <button class="auth-submit-btn" onclick="doRegister()">تۆمارکردن و داخیلبوون</button>
-
-      <div class="auth-or"><span>یان</span></div>
-
-      <button class="google-btn" onclick="handleSignIn()">
-        <svg width="18" height="18" viewBox="0 0 48 48">
-          <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
-          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.8 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
-          <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.2C9.5 35.8 16.3 44 24 44z"/>
-          <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.2 5.4l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.6-.4-3.9z"/>
-        </svg>
-        Google بە داخیلبوون
-      </button>
-    </div>
-
-    <!-- error msg -->
-    <div id="auth-error" class="auth-error" style="display:none"></div>
+<div id="auth-error" class="auth-error" style="display:none"></div>
+```
 
   </div>
 </div>
 
+<!-- ══ UPDATE DIALOG ══ -->
+
+<div class="modal-bg" id="modal-update" style="display:none;align-items:center;justify-content:center;">
+  <div class="update-box">
+    <div class="update-icon">🚀</div>
+    <div class="update-badge">نوێکردنەوەی نوێ</div>
+    <div class="update-version" id="update-version">وەرژن ١.٠</div>
+    <div class="update-title" id="update-title">نوێکردنەوەی بەردەست</div>
+    <div class="update-body" id="update-body"></div>
+    <button class="update-btn" onclick="closeUpdateDialog()">باشە، تێگەیشتم ✓</button>
+    <button class="update-skip" onclick="closeUpdateDialog()">دواتر</button>
+  </div>
+</div>
+
 <!-- SUMMARY MODAL -->
+
 <div class="modal-bg" id="modal-summary">
   <div class="modal-box">
     <div class="modal-title" id="summary-title">📊 کۆی بڕەکان بە دراو</div>
@@ -244,13 +235,14 @@
 </div>
 
 <!-- CONFIRM MODAL -->
+
 <div class="modal-bg" id="modal-confirm">
   <div class="confirm-box">
     <h3>دڵنیاییت؟</h3>
     <p id="confirm-msg"></p>
     <div class="confirm-btns">
       <button class="cf-yes" id="cf-yes">بەڵێ، بسڕەوە</button>
-      <button class="cf-no"  onclick="closeModal('modal-confirm')">نەخێر</button>
+      <button class="cf-no" onclick="closeModal('modal-confirm')">نەخێر</button>
     </div>
   </div>
 </div>
@@ -258,5 +250,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="script.js"></script>
+
 </body>
 </html>
