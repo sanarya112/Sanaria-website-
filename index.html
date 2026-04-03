@@ -6,26 +6,53 @@
   <title>سەناریا — بەڕێوەبردنی ئەکاونت</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase — پێش هەموو شتێک لە head دا -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
   <script src="firebase.js"></script>
 </head>
 <body>
 
-<div id="app">
+<!-- ══ LOADING SCREEN ══ -->
+<div id="loader" class="loader">
+  <div class="loader-particles" id="loader-particles"></div>
+  <div class="loader-content">
+    <div class="loader-logo">
+      <div class="loader-ring"></div>
+      <div class="loader-ring"></div>
+      <svg viewBox="0 0 62 62" fill="none" width="54" height="54">
+        <rect x="8" y="6" width="46" height="50" rx="8" fill="white" fill-opacity=".15" stroke="white" stroke-width="2"/>
+        <rect x="15" y="16" width="32" height="12" rx="4" fill="white" fill-opacity=".25"/>
+        <text x="18" y="26" fill="white" font-size="8" font-weight="bold" font-family="Arial">١٢٣</text>
+        <circle cx="22" cy="38" r="4" fill="white"/><circle cx="31" cy="38" r="4" fill="white"/>
+        <circle cx="40" cy="38" r="4" fill="white"/><circle cx="22" cy="48" r="4" fill="white"/>
+        <circle cx="31" cy="48" r="4" fill="white"/>
+        <rect x="36" y="44" width="8" height="8" rx="2" fill="#00e5ff"/>
+      </svg>
+    </div>
+    <div class="loader-title">سەناریا</div>
+    <div class="loader-sub">بەڕێوەبردنی ئەکاونت</div>
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+    <div class="loader-pct" id="loader-pct">٠٪</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+
   <!-- MAIN PAGE -->
   <div id="page-main" class="page active">
     <div class="topbar">
       <div class="topbar-icons">
-        <button onclick="showSummaryModal()">⋮</button>
+        <button onclick="showSummaryModal()" title="ڕاپۆرت">📊</button>
       </div>
-      <div class="topbar-title">بەڕێوەبردنی ئەکاونتەکەم</div>
+      <div class="topbar-title">💰 سەناریا</div>
       <div class="topbar-icons">
-        <button id="topbar-login-btn" onclick="showLoginModal('login')">🔑</button>
+        <button id="topbar-login-btn" onclick="showLoginModal('login')" title="داخیلبوون">🔑</button>
         <button id="topbar-user-btn" onclick="toggleUserMenu()" style="display:none">
-          <img id="topbar-avatar" src="" alt="" style="width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.6);object-fit:cover;">
+          <img id="topbar-avatar" src="" alt="" style="width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.7);object-fit:cover;">
         </button>
       </div>
     </div>
@@ -35,21 +62,13 @@
       <div class="user-menu-info">
         <img id="menu-avatar" src="" alt="">
         <div>
-          <div id="menu-name" class="menu-name"></div>
+          <div id="menu-name"  class="menu-name"></div>
           <div id="menu-email" class="menu-email"></div>
         </div>
       </div>
       <div class="user-menu-divider"></div>
-      <button class="menu-logout-btn" onclick="handleSignOut()"><span>🚪</span> لۆگ ئاوت</button>
-    </div>
-
-    <!-- AD TOP - MyBidAds -->
-    <div class="ad-banner">
-      <script type="text/javascript">
-        var infolinks_pid = 3435893;
-        var infolinks_wsid = 0;
-      </script>
-      <script type="text/javascript" src="//resources.infolinks.com/js/infolinks_main.js"></script>
+      <button class="menu-item" onclick="window.location.href='pro.html'">⭐ Pro بکە</button>
+      <button class="menu-item menu-logout" onclick="handleSignOut()">🚪 لۆگ ئاوت</button>
     </div>
 
     <div class="tabs">
@@ -68,30 +87,22 @@
               <line x1="7" y1="12" x2="17" y2="12" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
             </svg>
           </div>
-          <div class="card-label">کردنەوەی ئەکاونتی نوێ</div>
+          <div class="card-label">ئەکاونتی نوێ</div>
         </div>
         <div class="action-card" onclick="showSummaryModal()">
-          <span class="icon">📊</span>
-          <div class="card-label">ڕاپۆرتی کۆی بڕەکان</div>
+          <span class="card-icon">📊</span>
+          <div class="card-label">کۆی بڕەکان</div>
         </div>
-        <div class="action-card">
-          <span class="icon">💻</span>
-          <div class="card-label">بینین لە کۆمپیوتەر</div>
+        <div class="action-card" onclick="window.location.href='pro.html'">
+          <span class="card-icon">⭐</span>
+          <div class="card-label">Pro بکە</div>
         </div>
       </div>
-      <div class="user-list" id="user-list"></div>
 
-      <!-- AD MIDDLE - MyBidAds -->
-      <div class="ad-banner ad-middle">
-        <ins class="adsbymybidads"
-          data-ad-client="your-mybidads-client-id"
-          data-ad-slot="your-slot-id"
-          style="display:block">
-        </ins>
-      </div>
+      <div class="user-list" id="user-list"></div>
     </div>
 
-    <div class="bottom-nav" onclick="showSummaryModal()">وردەکارییەکان</div>
+    <div class="bottom-nav" onclick="showSummaryModal()">📊 وردەکارییەکان</div>
     <button class="fab show" onclick="requireAuth(()=>gotoPage('page-new'))">+</button>
   </div>
 
@@ -99,13 +110,13 @@
   <div id="page-new" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="gotoPage('page-main')">→</button>
-      <span>کردنەوەی ئەکاونتی نوێ</span>
+      <span>ئەکاونتی نوێ</span>
       <div style="width:28px"></div>
     </div>
     <div class="new-form">
       <div class="nf-field"><input type="text"  id="nf-name"  placeholder="ناو"></div>
       <div class="nf-field"><input type="tel"   id="nf-phone" placeholder="ژمارەی تەلەفۆن"></div>
-      <div class="nf-field"><input type="email" id="nf-email" placeholder="ئیمەیڵ"></div>
+      <div class="nf-field"><input type="email" id="nf-email" placeholder="ئیمەیڵ (ئارەزوومەندانە)"></div>
       <div class="nf-field">
         <select id="nf-type" style="width:100%">
           <option value="general">گشتی</option>
@@ -123,14 +134,15 @@
       </button>
     </div>
   </div>
-</div>
+
+</div><!-- end app -->
 
 <!-- ══ LOGIN MODAL ══ -->
 <div class="modal-bg" id="modal-login">
   <div class="login-box">
     <button class="login-close-btn" onclick="closeModal('modal-login')">×</button>
-    <div class="login-logo">
-      <svg viewBox="0 0 62 62" fill="none" width="46" height="46">
+    <div class="login-logo-wrap">
+      <svg viewBox="0 0 62 62" fill="none" width="44" height="44">
         <rect x="8" y="6" width="46" height="50" rx="8" fill="#00a8b5" fill-opacity=".2" stroke="#00a8b5" stroke-width="2"/>
         <rect x="15" y="16" width="32" height="12" rx="4" fill="#00a8b5" fill-opacity=".3"/>
         <circle cx="22" cy="38" r="4" fill="#00a8b5"/><circle cx="31" cy="38" r="4" fill="#00a8b5"/>
@@ -139,6 +151,7 @@
         <rect x="36" y="44" width="8" height="8" rx="2" fill="#00e5ff"/>
       </svg>
     </div>
+
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login"    onclick="switchTab('login')">چوونەژوورەوە</button>
       <button class="auth-tab"        id="tab-register" onclick="switchTab('register')">تۆمارکردن</button>
@@ -199,22 +212,21 @@
 </div>
 
 <!-- ══ UPDATE DIALOG ══ -->
-<div class="modal-bg" id="modal-update" style="display:none;align-items:center;justify-content:center;">
+<div id="modal-update" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;align-items:center;justify-content:center;">
   <div class="update-box">
-    <div class="update-icon">🚀</div>
+    <div class="update-emoji">🚀</div>
     <div class="update-badge">نوێکردنەوەی نوێ</div>
-    <div class="update-version" id="update-version">وەرژن ١.٠</div>
-    <div class="update-title" id="update-title">نوێکردنەوەی بەردەست</div>
-    <div class="update-body" id="update-body"></div>
-    <button class="update-btn" onclick="closeUpdateDialog()">باشە، تێگەیشتم ✓</button>
-    <button class="update-skip" onclick="closeUpdateDialog()">دواتر</button>
+    <div class="update-ver" id="update-ver"></div>
+    <div class="update-notes" id="update-notes"></div>
+    <button class="update-ok" onclick="closeUpdate()">✓ باشە، تێگەیشتم</button>
+    <button class="update-later" onclick="closeUpdate()">دواتر</button>
   </div>
 </div>
 
 <!-- SUMMARY MODAL -->
 <div class="modal-bg" id="modal-summary">
   <div class="modal-box">
-    <div class="modal-title" id="summary-title">📊 کۆی بڕەکان بە دراو</div>
+    <div class="modal-title" id="summary-title">📊 کۆی بڕەکان</div>
     <table class="modal-table">
       <thead><tr><th>دەرامەت</th><th>دائن</th><th>مەدین</th><th>ماوە</th></tr></thead>
       <tbody id="summary-tbody"></tbody>
