@@ -1,16 +1,9 @@
 // ── SANARIA — Firebase Init ──
-(function(){
-var config = {
-apiKey:            “AIzaSyC7jIwGVdqII0v53gFw83mP9Pa4PBSLg2I”,
-authDomain:        “sanush-website-datebase.firebaseapp.com”,
-projectId:         “sanush-website-datebase”,
-storageBucket:     “sanush-website-datebase.firebasestorage.app”,
-messagingSenderId: “336092110705”,
-appId:             “1:336092110705:web:1b7b06b247ab1fae54e0d0”
-};
-if (!firebase.apps.length) firebase.initializeApp(config);
-window._auth     = firebase.auth();
-window._db       = firebase.firestore();
-window._provider = new firebase.auth.GoogleAuthProvider();
-console.log(‘✅ Firebase ready’);
+(function () {
+  var cfg = SANARIA_CONFIG.firebase;
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  window._auth     = firebase.auth();
+  window._db       = firebase.firestore();
+  window._provider = new firebase.auth.GoogleAuthProvider();
+  console.log('✅ Firebase ready');
 })();
