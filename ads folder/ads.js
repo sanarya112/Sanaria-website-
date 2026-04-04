@@ -29,7 +29,7 @@ function showVideoAd() {
     const container = document.getElementById('vast-player-container');
     
     // نموونەی دانانی ڕیکلام بە Iframe (ئەگەر کۆمپانیاکە پێت بدات)
-    container.innerHTML = `<iframe src="YOUR_VAST_URL_HERE" width="100%" height="360" frameborder="0" scrolling="no"></iframe>`;
+    container.innerHTML = `<iframe src="https://vast.vstserv.com/vast?spot_id=2018957" width="100%" height="360" frameborder="0" scrolling="no"></iframe>`;
 }
 
 function closeVideoAd() {
