@@ -74,7 +74,7 @@ sessionStorage.setItem(KEY, ‘1’);
 var s = document.createElement('script');
 s.type  = 'text/javascript';
 s.async = true;
-s.src   = '//oblivionplaysaltered.com/4f/2b/cb/4f2bcb783237938b5716a72958d1b5c7.js';
+s.src   = 'https://pl29054663.profitablecpmratenetwork.com/8b/bb/0d/8bbb0d8ea76d7c85fa0fd141704f8818.js';
 // نموونە Adsterra: s.src = '//YOUR_ADSTERRA_POPUNDER_URL.js';
 document.body.appendChild(s);
 
