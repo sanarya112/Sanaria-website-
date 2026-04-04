@@ -12,12 +12,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="config.js"></script>
   <script src="firebase.js"></script>
-  <link rel="stylesheet" href="ads.css">
-
 </head>
 <body>
 
-  
 <!-- ══ LOADING SCREEN ══ -->
 <div id="loader" class="loader">
   <div class="loader-particles" id="loader-particles"></div>
@@ -80,28 +77,6 @@
       <button class="tab-btn active" onclick="filterTab('all',this)">گشتی</button>
     </div>
 
-    <!--Ads feild-->
-
-  <div class="ad-wrapper">
-    <div id="adsterra-zone"></div>
-</div>
-
-<div class="ad-wrapper">
-    <div id="mybid-zone"></div>
-</div>
-
-<div id="video-ad-modal" class="ad-video-overlay" style="display:none;">
-    <div class="ad-video-content">
-        <span class="close-ad" onclick="closeVideoAd()">&times;</span>
-        <div id="vast-player-container">
-            </div>
-        <p class="ad-timer">ڕیکلام - دەتوانیت دایبخەیت دوای ٥ چرکە</p>
-    </div>
-</div>
-
-    
-<!--End ads feld-->
-    
     <div class="scroll-area">
       <div class="action-cards">
         <div class="action-card" onclick="requireAuth(()=>gotoPage('page-new'))">
@@ -275,6 +250,5 @@
 <div class="toast" id="toast"></div>
 
 <script src="script.js"></script>
-  <script src="ads.js"></script>
 </body>
 </html>
