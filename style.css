@@ -192,3 +192,9 @@ td.dr{color:var(--orange);font-weight:700;} td.cr{color:var(--blue);font-weight:
 /* ── TOAST ── */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2332;color:#fff;padding:9px 22px;border-radius:50px;font-size:.88rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:9999;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── AD SLOTS ── */
+.ad-slot{position:relative;width:100%;overflow:hidden;background:#f8f8f8;border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;min-height:60px;}
+.ad-slot-top{margin-bottom:2px;}
+.ad-slot-mid{margin:10px 12px;border-radius:12px;border:1px solid var(--border)!important;min-height:120px;}
+#ad-slot-socialbar{position:fixed;bottom:0;left:0;right:0;z-index:99;}
