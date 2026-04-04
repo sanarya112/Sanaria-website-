@@ -69,7 +69,7 @@ if (fired) return;
 fired = true;
 sessionStorage.setItem(KEY, ‘1’);
 
-``` 
+
 // ── Adsterra Popunder Script ──
 var s = document.createElement('script');
 s.type  = 'text/javascript';
@@ -79,7 +79,7 @@ s.src   = '//oblivionplaysaltered.com/4f/2b/cb/4f2bcb783237938b5716a72958d1b5c7.
 document.body.appendChild(s);
 
 cleanup();
-```
+
 
 }
 
@@ -106,7 +106,7 @@ function inject() {
 if (loaded) return;
 loaded = true;
 
-```
+
 var slot = document.getElementById('ad-slot-socialbar');
 
 // ── Adsterra Social Bar Script ──
@@ -120,7 +120,6 @@ if (slot) slot.appendChild(s);
 else document.body.appendChild(s);
 
 window.removeEventListener('scroll', onScroll, { passive: true });
-```
 
 }
 
