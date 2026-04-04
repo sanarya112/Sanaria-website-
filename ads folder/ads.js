@@ -49,7 +49,7 @@ if (!slot) return;
 
 var s = document.createElement(‘script’);
 s.async = true;
-s.src   = ‘//mybidads.com/ad/YOUR_MYBIDADS_RECT_ID’; // ← URL ی خۆت بدەرەوە
+s.src   = "https://js.mbidadm.com/static/scripts.js" ← URL ی خۆت بدەرەوە
 slot.appendChild(s);
 slot.style.display = ‘block’;
 }
