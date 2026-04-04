@@ -19,3 +19,21 @@
         mybidContainer.appendChild(mbScript);
     }
 })();
+
+
+function showVideoAd() {
+    const modal = document.getElementById('video-ad-modal');
+    modal.style.display = 'flex';
+
+    // لێرەدا کۆدی VAST Tag یان Iframe کە کۆمپانیاکە پێت دەدات دایبنێ
+    const container = document.getElementById('vast-player-container');
+    
+    // نموونەی دانانی ڕیکلام بە Iframe (ئەگەر کۆمپانیاکە پێت بدات)
+    container.innerHTML = `<iframe src="YOUR_VAST_URL_HERE" width="100%" height="360" frameborder="0" scrolling="no"></iframe>`;
+}
+
+function closeVideoAd() {
+    const modal = document.getElementById('video-ad-modal');
+    modal.style.display = 'none';
+    document.getElementById('vast-player-container').innerHTML = ''; // بۆ ئەوەی دەنگەکە بوەستێت
+}
