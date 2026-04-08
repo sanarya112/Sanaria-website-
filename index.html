@@ -47,6 +47,7 @@
     <div class="topbar">
       <div class="topbar-icons">
         <button onclick="showSummaryModal()" title="ڕاپۆرت">📊</button>
+        <button onclick="toggleSearch()" title="گەڕان" id="search-toggle-btn">🔍</button>
       </div>
       <div class="topbar-title">💰 سەناریا</div>
       <div class="topbar-icons">
@@ -56,8 +57,6 @@
         </button>
       </div>
     </div>
-
-    <div data-banner-id="2018967"></div>
 
     <!-- USER MENU -->
     <div id="user-menu" class="user-menu" style="display:none">
@@ -71,6 +70,19 @@
       <div class="user-menu-divider"></div>
       <button class="menu-item" onclick="window.location.href='pro.html'">⭐ Pro بکە</button>
       <button class="menu-item menu-logout" onclick="handleSignOut()">🚪 لۆگ ئاوت</button>
+    </div>
+
+    <!-- AD TOP — MyBidAds Banner -->
+    <div id="ad-slot-top" class="ad-slot ad-slot-top" style="display:none"></div>
+
+    <!-- SEARCH BAR -->
+    <div id="search-bar" class="search-bar" style="display:none">
+      <div class="search-inner">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="ناو بنووسە بۆ گەڕان..." autocomplete="off" oninput="doSearch(this.value)" onkeydown="if(event.key==='Escape')toggleSearch()">
+        <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none">×</button>
+      </div>
+      <div id="search-results-count" class="search-count" style="display:none"></div>
     </div>
 
     <div class="tabs">
@@ -102,7 +114,14 @@
       </div>
 
       <div class="user-list" id="user-list"></div>
+
+      <!-- AD MID — MyBidAds Rectangle -->
+      <div id="ad-slot-mid" class="ad-slot ad-slot-mid" style="display:none"></div>
+
     </div>
+
+    <!-- AD Social Bar — Adsterra -->
+    <div id="ad-slot-socialbar"></div>
 
     <div class="bottom-nav" onclick="showSummaryModal()">📊 وردەکارییەکان</div>
     <button class="fab show" onclick="requireAuth(()=>gotoPage('page-new'))">+</button>
@@ -252,5 +271,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="script.js"></script>
+<script src="ads.js"></script>
 </body>
 </html>
