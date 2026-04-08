@@ -114,31 +114,19 @@ function initAuth(){
 // ── CLOUD SAVE ──
 function saveToCloud(){
   if (!_user) return;
-  // بەکارهێنانی {merge: true} بۆ ئەوەی داتای کۆن نەسرێتەوە
-  window._db.collection('users').doc(_user.uid).set({accounts: _accounts}, {merge: true})
-    .then(function() { 
-      console.log('✅ داتاکە بە سەرکەوتوویی لە کڵاود سەیڤ بوو'); 
-    })
-    .catch(function(e){ 
-      console.error('کێشە لە سەیڤکردن هەیە:', e); 
-      alert('نەتوانرا داتاکە سەیڤ بکرێت! دڵنیابە لە ئینتەرنێتەکەت یان یاساکانی فایەربەیس.');
-    });
+  window._db.collection('users').doc(_user.uid).set({accounts:_accounts})
+    .catch(function(e){ console.error('Save error',e); });
 }
 
 // ── REALTIME LISTENER ──
 function startListening(uid){
   if (_unsub) _unsub();
-  // لێرەدا فەنکشنی error مان زیاد کردووە بۆ ئەوەی بزانین بۆچی نایەتەوە
   _unsub = window._db.collection('users').doc(uid).onSnapshot(function(snap){
     _accounts = snap.exists ? (snap.data().accounts||[]) : [];
     if (!snap.exists) seedDemo();
     renderList();
-  }, function(error) {
-    console.error("🔴 کێشە لە هێنانەوەی داتاکان:", error);
-    alert("کێشەیەک هەیە لە هێنانەوەی داتاکان، تکایە یاساکانی (Rules) فایەربەیس چاک بکە.");
   });
 }
-
 function stopListening(){
   if (_unsub){_unsub();_unsub=null;}
   _accounts=[];
@@ -147,14 +135,13 @@ function seedDemo(){
   _accounts=[{
     id:'demo1',name:'ئەڤریم',phone:'0770000000',email:'',type:'customer',
     transactions:[
-      {id:'t1',type:'debit', amount:50, currency:'BHD',date:'2026-03-06',desc:'نموونە'},
-      {id:'t2',type:'debit', amount:100,currency:'USD',date:'2026-03-06',desc:'نموونە'},
-      {id:'t3',type:'credit',amount:50, currency:'USD',date:'2026-03-06',desc:'نموونە'},
+      {id:'t1',type:'debit', amount:50, currency:'BHD',date:'2026-03-06',desc:''},
+      {id:'t2',type:'debit', amount:100,currency:'USD',date:'2026-03-06',desc:''},
+      {id:'t3',type:'credit',amount:50, currency:'USD',date:'2026-03-06',desc:''},
     ]
   }];
   saveToCloud();
 }
-
 
 // ── AUTH GUARD ──
 window.requireAuth = function(fn){
@@ -420,3 +407,141 @@ window.closeModal=function(id){document.getElementById(id).classList.remove('sho
 document.querySelectorAll('.modal-bg').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('show');});});
 
 function toast(msg){var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2300);}
+
+// ── SEARCH ──
+var _searchActive = false;
+var _searchQuery  = '';
+
+window.toggleSearch = function () {
+  _searchActive = !_searchActive;
+  var bar   = document.getElementById('search-bar');
+  var input = document.getElementById('search-input');
+  var btn   = document.getElementById('search-toggle-btn');
+  if (_searchActive) {
+    bar.style.display = 'block';
+    btn.style.background = 'rgba(255,255,255,.22)';
+    setTimeout(function () { if (input) input.focus(); }, 80);
+  } else {
+    bar.style.display = 'none';
+    btn.style.background = '';
+    clearSearch();
+  }
+};
+
+window.clearSearch = function () {
+  _searchQuery = '';
+  var input = document.getElementById('search-input');
+  var clear = document.getElementById('search-clear');
+  var count = document.getElementById('search-results-count');
+  if (input) input.value = '';
+  if (clear) clear.style.display = 'none';
+  if (count) count.style.display = 'none';
+  renderList();
+};
+
+// ── نۆرمالایزکردن: هەر نوسینێک (کوردی، عەرەبی، لاتینی) ──
+function normalize(str) {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .trim()
+    // عەرەبی/کوردی → فۆرمی ئاسایی
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/[ة]/g,   'ه')
+    .replace(/[ى]/g,   'ي')
+    .replace(/[ڤ]/g,   'ف')
+    .replace(/[گ]/g,   'گ')
+    // زیادەی هەڵکەوتن
+    .replace(/[\u064B-\u065F]/g, '') // tashkeel
+    .replace(/\s+/g, ' ');
+}
+
+window.doSearch = function (val) {
+  _searchQuery = val || '';
+  var clear = document.getElementById('search-clear');
+  if (clear) clear.style.display = _searchQuery ? 'flex' : 'none';
+  renderList();
+};
+
+// ── renderList نوێکراوە بە فیلتەری سێرچ ──
+// پێشتر renderList هەبوو — ئێستا بە وردی دەیگۆڕین
+var _origRenderList = renderList;
+
+renderList = function () {
+  var el = document.getElementById('user-list');
+  if (!el) return;
+
+  if (!_user) {
+    el.innerHTML = '<div class="login-prompt" onclick="showLoginModal(\'login\')">'
+      + '<div class="lp-icon">🔐</div>'
+      + '<div class="lp-title">داخیلبوون پێویستە</div>'
+      + '<div class="lp-sub">بۆ بینین و بەڕێوەبردنی ئەکاونتەکانت</div>'
+      + '<div class="lp-btns">'
+      + '<button class="lp-btn-main" onclick="event.stopPropagation();showLoginModal(\'login\')">چوونەژوورەوە</button>'
+      + '<button class="lp-btn-sec"  onclick="event.stopPropagation();showLoginModal(\'register\')">تۆمارکردن</button>'
+      + '</div></div>';
+    return;
+  }
+
+  // فیلتەری tab
+  var list = _activeTab === 'all'
+    ? _accounts
+    : _accounts.filter(function (a) { return a.type === _activeTab; });
+
+  // فیلتەری سێرچ
+  if (_searchQuery && _searchQuery.trim()) {
+    var q = normalize(_searchQuery);
+    list = list.filter(function (a) {
+      return normalize(a.name).indexOf(q) > -1
+          || normalize(a.phone || '').indexOf(q) > -1
+          || normalize(a.email || '').indexOf(q) > -1;
+    });
+  }
+
+  // ژمارەی ئەنجامەکان
+  var count = document.getElementById('search-results-count');
+  if (_searchQuery && _searchQuery.trim()) {
+    if (count) {
+      count.style.display = 'block';
+      count.textContent = list.length + ' ئەنجام دۆزرایەوە';
+    }
+  } else {
+    if (count) count.style.display = 'none';
+  }
+
+  if (!list.length) {
+    el.innerHTML = _searchQuery
+      ? '<div class="search-empty"><div class="se-icon">🔍</div><div class="se-title">هیچ ئەنجامێک نەدۆزرایەوە</div><div class="se-sub">«' + _searchQuery + '» بۆ ناوێکی تر تاقی بکەرەوە</div></div>'
+      : '<div class="empty-msg" style="padding:28px 0">هیچ ئەکاونتێک نییە.<br>دووگمەی + بکەرەوە.</div>';
+    return;
+  }
+
+  // هایلایت کردنی تێکست
+  el.innerHTML = list.map(function (a) {
+    return buildCard(a, _searchQuery);
+  }).join('');
+};
+
+// ── buildCard نوێکراوە بە هایلایت ──
+var _origBuildCard = buildCard;
+
+buildCard = function (a, searchQ) {
+  var card = _origBuildCard(a);
+  if (!searchQ || !searchQ.trim()) return card;
+
+  // هایلایت ناوەکە
+  var q   = normalize(searchQ);
+  var name = a.name || '';
+  var normName = normalize(name);
+  var idx = normName.indexOf(q);
+  if (idx > -1) {
+    var highlighted = name.slice(0, idx)
+      + '<mark class="search-hl">' + name.slice(idx, idx + searchQ.length) + '</mark>'
+      + name.slice(idx + searchQ.length);
+    card = card.replace(
+      '<div class="user-name">' + name + '</div>',
+      '<div class="user-name">' + highlighted + '</div>'
+    );
+  }
+  return card;
+};
