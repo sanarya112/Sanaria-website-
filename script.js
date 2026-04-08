@@ -440,20 +440,76 @@ window.clearSearch = function () {
 };
 
 // ── نۆرمالایزکردن: هەر نوسینێک (کوردی، عەرەبی، لاتینی) ──
+// ── TRANSLITERATION MAP — کوردی/عەرەبی → لاتینی ──
+// بەمە دەتوانیت "zhiwar" بنوسی و "ژیوار" بیهێنیت
+var KURD_TO_LATIN = [
+  // تیپە تایبەتەکانی کوردی
+  ['ژ', 'zh'], ['چ', 'ch'], ['ش', 'sh'], ['خ', 'kh'],
+  ['غ', 'gh'], ['ڵ', 'll'], ['ڕ', 'rr'], ['ۆ', 'o'],
+  ['ێ', 'e'],  ['ی', 'y'],  ['و', 'w'],  ['ە', 'a'],
+  ['ا', 'a'],  ['ب', 'b'],  ['پ', 'p'],  ['ت', 't'],
+  ['ج', 'j'],  ['د', 'd'],  ['ر', 'r'],  ['ز', 'z'],
+  ['س', 's'],  ['ع', 'a'],  ['ف', 'f'],  ['ڤ', 'v'],
+  ['ق', 'q'],  ['ک', 'k'],  ['گ', 'g'],  ['ل', 'l'],
+  ['م', 'm'],  ['ن', 'n'],  ['ه', 'h'],  ['ح', 'h'],
+  ['ط', 't'],  ['ص', 's'],  ['ض', 'd'],  ['ظ', 'z'],
+  ['ذ', 'z'],  ['ث', 's'],  ['ئ', ''],   ['ء', ''],
+  ['إ', 'a'],  ['أ', 'a'],  ['آ', 'a'],  ['ة', 'h'],
+  ['ى', 'y'],  ['ۋ', 'w'],  ['ڎ', 'd'],
+];
+
+function toLatinKey(str) {
+  if (!str) return '';
+  var s = str.toLowerCase().trim();
+  // لابردنی tashkeel
+  s = s.replace(/[\u064B-\u065F\u0670]/g, '');
+  // گۆڕینی هەر تیپێک
+  for (var i = 0; i < KURD_TO_LATIN.length; i++) {
+    var from = KURD_TO_LATIN[i][0];
+    var to   = KURD_TO_LATIN[i][1];
+    s = s.split(from).join(to);
+  }
+  // لابردنی شتە ناناسراوەکان
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
+}
+
 function normalize(str) {
   if (!str) return '';
-  return str
-    .toLowerCase()
-    .trim()
-    // عەرەبی/کوردی → فۆرمی ئاسایی
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/[ة]/g,   'ه')
-    .replace(/[ى]/g,   'ي')
-    .replace(/[ڤ]/g,   'ف')
-    .replace(/[گ]/g,   'گ')
-    // زیادەی هەڵکەوتن
-    .replace(/[\u064B-\u065F]/g, '') // tashkeel
-    .replace(/\s+/g, ' ');
+  var s = str.toLowerCase().trim();
+  // لابردنی tashkeel
+  s = s.replace(/[\u064B-\u065F\u0670]/g, '');
+  // یەکسانکردنی ئەلفەکان
+  s = s.replace(/[أإآ]/g, 'ا')
+       .replace(/[ة]/g,   'ه')
+       .replace(/[ى]/g,   'ي')
+       .replace(/\s+/g,   ' ');
+  return s;
+}
+
+// گەڕانەوەی هەردوو نموونە: ئەرەبی و لاتینی
+function matchSearch(name, query) {
+  if (!name || !query) return false;
+  var q = query.toLowerCase().trim();
+  if (!q) return true;
+
+  // ١. گەڕان بە کوردی/عەرەبی ڕاستەوخۆ
+  if (normalize(name).indexOf(normalize(q)) > -1) return true;
+
+  // ٢. گەڕان بە لاتینی — نموونە: "zh" بدۆزێتەوە "ژ"
+  var nameLatin  = toLatinKey(name);
+  var queryLatin = toLatinKey(q);   // ئەگەر خۆی کوردی نووسی
+  if (nameLatin.indexOf(q) > -1)         return true; // "zhiwar" → "ژیوار"
+  if (nameLatin.indexOf(queryLatin) > -1) return true;
+
+  // ٣. گەڕان تیپ بە تیپ — هەر تیپێک لە query لە name بدۆزێتەوە
+  // نموونە: "z" → ژ،ز،ذ،ظ هەموویان
+  var qChars = q.split('');
+  var nLatin = toLatinKey(name);
+  // ئەگەر تەواوی query لە لاتینی ناو دەبینرێت
+  if (nLatin.indexOf(q) > -1) return true;
+
+  return false;
 }
 
 window.doSearch = function (val) {
@@ -490,11 +546,10 @@ renderList = function () {
 
   // فیلتەری سێرچ
   if (_searchQuery && _searchQuery.trim()) {
-    var q = normalize(_searchQuery);
     list = list.filter(function (a) {
-      return normalize(a.name).indexOf(q) > -1
-          || normalize(a.phone || '').indexOf(q) > -1
-          || normalize(a.email || '').indexOf(q) > -1;
+      return matchSearch(a.name  || '', _searchQuery)
+          || matchSearch(a.phone || '', _searchQuery)
+          || matchSearch(a.email || '', _searchQuery);
     });
   }
 
@@ -529,19 +584,31 @@ buildCard = function (a, searchQ) {
   var card = _origBuildCard(a);
   if (!searchQ || !searchQ.trim()) return card;
 
-  // هایلایت ناوەکە
-  var q   = normalize(searchQ);
-  var name = a.name || '';
+  var name     = a.name || '';
   var normName = normalize(name);
-  var idx = normName.indexOf(q);
-  if (idx > -1) {
+  var normQ    = normalize(searchQ);
+
+  // هایلایت ئەگەر کوردی/عەرەبی نووسرا
+  var idx = normName.indexOf(normQ);
+  if (idx > -1 && normQ.length > 0) {
+    // دۆزینەوەی شوێنی ڕاستەکەی لە ناوی ئەصلیدا
     var highlighted = name.slice(0, idx)
-      + '<mark class="search-hl">' + name.slice(idx, idx + searchQ.length) + '</mark>'
-      + name.slice(idx + searchQ.length);
+      + '<mark class="search-hl">' + name.slice(idx, idx + normQ.length) + '</mark>'
+      + name.slice(idx + normQ.length);
     card = card.replace(
       '<div class="user-name">' + name + '</div>',
       '<div class="user-name">' + highlighted + '</div>'
     );
+  } else {
+    // ئەگەر لاتینی نووسرا، تەواوی ناوەکە هایلایت بکە
+    var latinName = toLatinKey(name);
+    var latinQ    = searchQ.toLowerCase().trim();
+    if (latinName.indexOf(latinQ) > -1) {
+      card = card.replace(
+        '<div class="user-name">' + name + '</div>',
+        '<div class="user-name"><mark class="search-hl">' + name + '</mark></div>'
+      );
+    }
   }
   return card;
 };
