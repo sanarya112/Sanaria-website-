@@ -198,3 +198,79 @@ td.dr{color:var(--orange);font-weight:700;} td.cr{color:var(--blue);font-weight:
 .ad-slot-top{margin-bottom:2px;}
 .ad-slot-mid{margin:10px 12px;border-radius:12px;border:1px solid var(--border)!important;min-height:120px;}
 #ad-slot-socialbar{position:fixed;bottom:0;left:0;right:0;z-index:99;}
+
+/* ── SEARCH BAR ── */
+.search-bar {
+  background: var(--teal-dark);
+  padding: 8px 12px 10px;
+  animation: slideDown .22s ease;
+}
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.search-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 8px 12px;
+  border: 1.5px solid rgba(255,255,255,.25);
+  transition: border-color .2s, background .2s;
+}
+.search-inner:focus-within {
+  background: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.5);
+}
+.search-icon { font-size: 1rem; flex-shrink: 0; }
+.search-inner input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Noto Sans Arabic', sans-serif;
+  font-size: .95rem;
+  color: #fff;
+  direction: rtl;
+  text-align: right;
+}
+.search-inner input::placeholder { color: rgba(255,255,255,.55); }
+.search-clear {
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: #fff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: .95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.search-count {
+  color: rgba(255,255,255,.75);
+  font-size: .78rem;
+  text-align: center;
+  margin-top: 5px;
+}
+
+/* ── SEARCH HIGHLIGHT ── */
+mark.search-hl {
+  background: #fde68a;
+  color: #1a2332;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+/* ── SEARCH EMPTY STATE ── */
+.search-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+.se-icon  { font-size: 2.8rem; margin-bottom: 10px; opacity: .5; }
+.se-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.se-sub   { font-size: .85rem; color: var(--text-light); line-height: 1.6; }
