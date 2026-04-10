@@ -113,7 +113,7 @@ var slot = document.getElementById('ad-slot-socialbar');
 var s = document.createElement('script');
 s.type  = 'text/javascript';
 s.async = true;
-s.src   = '//oblivionplaysaltered.com/fd/18/35/fd1835ea44bb46de288443ce33b32b74.js';
+s.src   = 'https://pl29054665.profitablecpmratenetwork.com/f1/13/a3/f113a3af57cbce1d601f8168dba08c40.js';
 // نموونە: s.src = '//YOUR_ADSTERRA_SOCIALBAR_URL.js';
 
 if (slot) slot.appendChild(s);
