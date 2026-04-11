@@ -2,9 +2,9 @@
 
 var ADS_CONFIG = {
   enabled:   false,
-  adsterra:  true,
-  popunder:  true,
-  socialbar: true,
+  adsterra:  false,
+  popunder:  false,
+  socialbar: false,
   delayMs:   1000,
 };
 
