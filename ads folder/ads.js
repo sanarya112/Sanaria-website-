@@ -5,9 +5,9 @@
 // ══════════════════════════════════════════
 
 var ADS = {
-  enabled:   true,
-  popunder:  true,
-  socialbar: true,
+  enabled:   false,
+  popunder:  false,
+  socialbar: false,
 };
 
 // ══════════════════════════════════════════
