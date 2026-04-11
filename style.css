@@ -355,3 +355,31 @@ td.bl.neg { color:var(--red);   font-weight:700; }
 /* ══ AD SOCIALBAR SLOT ══ */
 #ad-slot-socialbar { position:fixed; bottom:0; left:0; right:0; z-index:99; pointer-events:none; }
 #ad-slot-socialbar * { pointer-events:auto; }
+
+/* ══ AD CONTROLS ══ */
+.ad-ctrl-wrap {
+  position: absolute;
+  top: 4px; left: 6px;
+  display: flex; gap: 5px;
+  z-index: 99;
+}
+.ad-ctrl-btn {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.42);
+  color: #fff; border: none;
+  font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+  transition: background .2s, transform .15s;
+}
+.ad-ctrl-btn:hover { transform: scale(1.15); }
+.ad-ctrl-btn.close:hover { background: rgba(220,50,50,.85); }
+.ad-ctrl-btn.mini:hover  { background: rgba(0,120,200,.85); }
+
+/* Social Bar داخستن دووگمە */
+#ad-slot-socialbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  z-index: 999;
+  transition: transform .3s ease;
+}
