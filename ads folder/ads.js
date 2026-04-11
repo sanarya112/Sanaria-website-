@@ -1,7 +1,7 @@
 // ── SANARIA — ads.js ──
 
 var ADS_CONFIG = {
-  enabled:   true,
+  enabled:   false,
   adsterra:  true,
   popunder:  true,
   socialbar: true,
