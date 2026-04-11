@@ -491,11 +491,11 @@ function buildCard(a, q){
     +'<div class="frow"><div class="field"><label>بەروار</label><input type="date" id="date-'+a.id+'" value="'+today()+'"></div>'
     +'<div class="field span2" style="grid-column:2/3"><label>بیان</label><input type="text" id="desc-'+a.id+'" placeholder="بیان..."></div></div>'
     +'<div class="form-btns">'
-    +'<button class="btn-down" onclick="addTrans(\''+a.id+'\',\'debit\')">▼ مەدین</button>'
-    +'<button class="btn-up"   onclick="addTrans(\''+a.id+'\',\'credit\')">▲ دائن</button>'
+    +'<button class="btn-down" onclick="addTrans(\''+a.id+'\',\'debit\')">▼ دانەوە</button>'
+    +'<button class="btn-up"   onclick="addTrans(\''+a.id+'\',\'credit\')">▲ قەرز</button>'
     +'</div></div>'
     +(hasT
-      ?'<table class="trans-table"><thead><tr><th>بەروار</th><th>بیان</th><th>مەدین▼</th><th>دائن▲</th><th>دراو</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'
+      ?'<table class="trans-table"><thead><tr><th>بەروار</th><th>بیان</th><th>دانەوە▼</th><th>قەرز▲</th><th>دراو</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'
         +(Object.keys(bals).length?'<div class="sum-row">'+sumC+'</div>':'')
       :'<div class="empty-msg">هیچ مامەڵەیەک نییە</div>')
     +'</div></div>';
