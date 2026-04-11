@@ -122,7 +122,7 @@ function stopListening(){
 
 function seedDemo(){
   _accounts = [{
-    id:'demo1', name:'ئەڤریم', phone:'0770000000', email:'', type:'customer',
+    id:'demo1', name:'هامنۆ', phone:'0770000000', email:'', type:'customer',
     transactions:[
       {id:'t1',type:'debit', amount:50, currency:'BHD',date:'2026-03-06',desc:''},
       {id:'t2',type:'debit', amount:100,currency:'USD',date:'2026-03-06',desc:''},
@@ -280,7 +280,7 @@ window.handleSignOut = function(){
   stopListening();
   window._auth.signOut().then(function(){
     renderList();
-    toast('👋 لۆگ ئاوت کرایەوە');
+    toast('👋 بە سەرچەوتووی چونەیتە دەرەوە ');
   });
 };
 
