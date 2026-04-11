@@ -120,17 +120,7 @@ function stopListening(){
   _accounts = [];
 }
 
-function seedDemo(){
-  _accounts = [{
-    id:'demo1', name:'هامنۆ', phone:'0770000000', email:'', type:'customer',
-    transactions:[
-      {id:'t1',type:'debit', amount:50, currency:'BHD',date:'2026-03-06',desc:''},
-      {id:'t2',type:'debit', amount:100,currency:'USD',date:'2026-03-06',desc:''},
-      {id:'t3',type:'credit',amount:50, currency:'USD',date:'2026-03-06',desc:''},
-    ]
-  }];
-  saveToCloud();
-}
+
 
 window.requireAuth = function(fn){
   if (_user) fn();
