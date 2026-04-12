@@ -8,7 +8,7 @@
 
 var OTP_CONFIG = {
   enabled:    true,   // false بکە بۆ لابردنی OTP
-  sheetsURL:  '',     // URL ی Google Apps Script ی خۆت لێرە بدەرەوە
+  sheetsURL:  'Https://script.google.com/macros/s/AKfycbyhHNUak12cVwaA7T3aq7AAs4ekddg1hl_At9q7_mU7Bfx5REJ4jOGIzwfchncqOOxd/exec',     // URL ی Google Apps Script ی خۆت لێرە بدەرەوە
   expiryMin:  10,     // چەند خولەک کاردەکات
 };
 
