@@ -495,7 +495,7 @@ function buildCard(a, q){
     +'<button class="btn-up"   onclick="addTrans(\''+a.id+'\',\'credit\')">▲ قەرز</button>'
     +'</div></div>'
     +(hasT
-      ?'<table class="trans-table"><thead><tr><th>بەروار</th><th>بیان</th><th>دانەوە▼</th><th>قەرز▲</th><th>دراو</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'
+      ?'<table class="trans-table"><thead><tr><th>بەروار</th><th>تێبینی</th><th>دانەوە▼</th><th>قەرز▲</th><th>دراو</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'
         +(Object.keys(bals).length?'<div class="sum-row">'+sumC+'</div>':'')
       :'<div class="empty-msg">هیچ مامەڵەیەک نییە</div>')
     +'</div></div>';
