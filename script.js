@@ -489,7 +489,7 @@ function buildCard(a, q){
     +'<div class="frow"><div class="field"><label>بڕی پارە</label><input type="number" id="amt-'+a.id+'" placeholder="٠" min="0" step="any"></div>'
     +'<div class="field"><label>دراو</label><select id="cur-'+a.id+'">'+CUR_OPTS+'</select></div></div>'
     +'<div class="frow"><div class="field"><label>بەروار</label><input type="date" id="date-'+a.id+'" value="'+today()+'"></div>'
-    +'<div class="field span2" style="grid-column:2/3"><label>بیان</label><input type="text" id="desc-'+a.id+'" placeholder="بیان..."></div></div>'
+    +'<div class="field span2" style="grid-column:2/3"><label>تێبینی</label><input type="text" id="desc-'+a.id+'" placeholder="تێبینی..."></div></div>'
     +'<div class="form-btns">'
     +'<button class="btn-down" onclick="addTrans(\''+a.id+'\',\'debit\')">▼ دانەوە</button>'
     +'<button class="btn-up"   onclick="addTrans(\''+a.id+'\',\'credit\')">▲ قەرز</button>'
@@ -524,7 +524,7 @@ window.addTrans = function(id, type){
   if (!a.transactions) a.transactions=[];
   a.transactions.push({id:uid(),type:type,amount:amt,currency:cur,date:date,desc:desc});
   saveToCloud();
-  toast(type==='credit'?'✅ دائن زیاد کرا':'✅ مەدین زیاد کرا');
+  toast(type==='credit'?'✅ قەرز زیاد کرا':'✅ دانەوە زیاد کرا');
 };
 
 window.delTrans = function(aid, idx){
