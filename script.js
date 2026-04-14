@@ -469,7 +469,7 @@ function buildCard(a, q){
   var sumC = Object.entries(bals).map(function(e){
     var cur=e[0], b=e[1], rem=b.debit-b.credit;
     return '<div class="sum-chip"><div class="sl">'+curLabel(cur)+'</div>'
-      +'<div class="sv" style="color:'+(rem>0?'var(--orange)':rem<0?'var(--green)':'var(--text-light)')+'">'+Math.abs(rem)+' '+(rem>0?'مەدین':rem<0?'دائن':'سفر')+'</div></div>';
+      +'<div class="sv" style="color:'+(rem>0?'var(--orange)':rem<0?'var(--green)':'var(--text-light)')+'">'+Math.abs(rem)+' '+(rem>0?'دانەوە':rem<0?'قەرز':'سفر')+'</div></div>';
   }).join('');
 
   return '<div class="user-card" id="card-'+a.id+'">'
