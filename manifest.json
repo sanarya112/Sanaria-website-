@@ -2,7 +2,7 @@
   "name": "سەناریا — بەڕێوەبردنی ئەکاونت",
   "short_name": "سەناریا",
   "description": "بەڕێوەبردنی ئەکاونت و پارەکان",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0d2137",
   "theme_color": "#00a8b5",
