@@ -383,3 +383,60 @@ td.bl.neg { color:var(--red);   font-weight:700; }
   z-index: 999;
   transition: transform .3s ease;
 }
+
+/* ── USER INFO POPUP ── */
+.user-info-card {
+  background: var(--surface, #fff);
+  border-radius: 18px;
+  padding: 32px 28px 24px;
+  text-align: center;
+  min-width: 220px;
+  max-width: 300px;
+  width: 85vw;
+  box-shadow: 0 12px 40px rgba(0,0,0,.22);
+  position: relative;
+  animation: popIn .2s ease;
+}
+@keyframes popIn {
+  from { transform: scale(.85); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.user-info-close {
+  position: absolute;
+  top: 10px; left: 14px;
+  background: none; border: none;
+  font-size: 1.4rem; color: var(--text-light, #999);
+  cursor: pointer; line-height: 1;
+}
+.user-info-close:hover { color: var(--red, #e53935); }
+.user-info-avatar {
+  font-size: 3rem;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#80cbc4,#4db6ac);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 4px 14px rgba(77,182,172,.35);
+}
+.user-info-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text, #222);
+  margin-bottom: 10px;
+}
+.user-info-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg, #f4f4f4);
+  border-radius: 30px;
+  padding: 6px 18px;
+  font-size: 1rem;
+  color: var(--teal, #00a8b5);
+  font-weight: 600;
+  letter-spacing: .03em;
+  direction: ltr;
+}
+.user-info-phone::before { content: '📱'; font-size: .95rem; }
+.user-avatar { cursor: pointer; transition: transform .15s; }
+.user-avatar:hover { transform: scale(1.12); }
